@@ -8,18 +8,24 @@ on:
 jobs:
   test:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     strategy:
       matrix:
-        ref:
-        - develop
-        - releases/v0.23
+        include:
+        - spack_ref: develop
+          packages_ref: develop
+        - spack_ref: releases/v1.0
+          packages_ref: v2025.11.0
     steps:
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Set up Spack
       uses: ./
       with:
-        ref: ${{ matrix.ref }}
+        spack_ref: ${{ matrix.spack_ref }}
+        packages_ref: ${{ matrix.packages_ref }}
         buildcache: true
         color: true
 
@@ -28,6 +34,9 @@ jobs:
 
     - name: Check build cache config
       run: spack config blame mirrors
+
+    - name: Check packages repository config
+      run: spack config blame repos
 
     - name: Check build cache install in active env with spack-bash shell
       shell: spack-bash {0}
